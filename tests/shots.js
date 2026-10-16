@@ -1,0 +1,9 @@
+const {chromium}=require('playwright-core');const D='/workspace/habitapp/app/screens/';(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+const U='http://localhost:8765/index.html';
+const n=async()=>{const c=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'es-ES'});await c.grantPermissions(['notifications']);return c.newPage()};
+let p=await n();await p.goto(U);await p.waitForTimeout(600);await p.screenshot({path:D+'0-onboarding.png'});
+p=await n();await p.goto(U+'?demo#diario');await p.waitForTimeout(800);await p.screenshot({path:D+'1-diario.png'});await p.setViewportSize({width:390,height:1250});await p.screenshot({path:D+'1b-diario-completo.png'});await p.setViewportSize({width:390,height:844});
+await p.goto(U+'#tendencias');await p.waitForTimeout(1000);await p.screenshot({path:D+'2-tendencias.png'});await p.setViewportSize({width:390,height:2300});await p.waitForTimeout(900);await p.screenshot({path:D+'2b-tendencias-completa.png'});await p.setViewportSize({width:390,height:844});
+await p.goto(U+'#anadir');await p.fill('#nm','Alcohol');await p.locator('[data-i="🍷"]').click();await p.locator('[data-t="qty"]').click();await p.locator('[data-mx="1"]').click();await p.locator('[data-u="copas"]').click();await p.locator('[data-wd="5"]').click();await p.locator('[data-wd="6"]').click();await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(500);await p.screenshot({path:D+'3-anadir.png'});
+await p.goto(U+'#diario');await p.goto(U+'#anadir');await p.waitForTimeout(500);await p.setViewportSize({width:390,height:1500});await p.screenshot({path:D+'3b-anadir-orden.png'});await p.setViewportSize({width:390,height:844});
+await p.goto(U+'#ajustes');await p.locator('#rem').click();await p.waitForTimeout(2300);await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(200);await p.screenshot({path:D+'4-ajustes.png'});await b.close()})();

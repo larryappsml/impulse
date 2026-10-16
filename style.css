@@ -35,3 +35,20 @@ nav a.on{color:var(--a);font-weight:600}nav a.plus svg{background:var(--a);color
 body.ob nav{display:none}
 .ob h1{font-size:34px}.ob p{color:var(--m);line-height:1.5;margin-bottom:18px}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}#toast.on{opacity:1}
+/* fase 2 */
+main.in{animation:vin .22s ease-out}@keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pop{animation:pop .32s cubic-bezier(.3,1.6,.5,1)}@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+.tg:after{transition:left .28s cubic-bezier(.3,1.5,.5,1),width .15s}.tg:active:after{width:28px}.tg.on:active:after{left:19px}
+.st button,.btn,.chips button,.seg button,.dn button,.ord button,.dots button{transition:transform .12s,background .2s}.st button:active,.btn:active,.chips button:active,.dn button:active,.ord button:active{transform:scale(.92)}
+.st b{display:inline-block;transition:color .2s}.neg{color:var(--n)}
+.dots{display:flex;gap:8px}.dots button{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--b);background:var(--s);cursor:pointer;padding:0}.dots button.on{background:var(--a);border-color:var(--a)}.dots button:active{transform:scale(.85)}
+textarea.note{display:block;width:100%;margin-top:12px;resize:none;font:inherit;font-size:14px;line-height:1.4;background:var(--c);border:1px solid transparent;border-radius:12px;padding:10px 12px;color:var(--t);outline:none}textarea.note:focus{border-color:var(--a);background:#fff}
+.banner{background:#FBF4E6;border-color:#F0DDB5;font-size:14px;color:#7A5410}
+details summary{cursor:pointer;list-style:none;margin-bottom:8px}details summary::-webkit-details-marker{display:none}details summary:before{content:"›";display:inline-block;margin-right:6px;transition:transform .2s}details[open] summary:before{transform:rotate(90deg)}
+.card.off{opacity:.55}
+.ord{display:flex;gap:4px;flex:none}.ord button{width:32px;height:32px;border-radius:9px;border:1px solid var(--b);background:var(--s);color:var(--t);cursor:pointer;font-size:14px}.ord button:disabled{opacity:.3}
+.card.all{border-color:#BFE3D6;box-shadow:0 0 0 3px var(--al)}.card.all .prog i{animation:glow 1.2s ease-out}@keyframes glow{0%{filter:brightness(1.5)}100%{filter:none}}
+.prog i{transition:width .45s cubic-bezier(.2,.9,.3,1)}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .7s ease-out forwards}@keyframes draw{to{stroke-dashoffset:0}}
+.tap{cursor:pointer}.days button{min-width:40px}
+@media (prefers-reduced-motion:reduce){*,*:after{animation:none!important;transition:none!important}.draw{stroke-dashoffset:0}}

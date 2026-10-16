@@ -1,0 +1,6 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+const c=await b.newContext({viewport:{width:390,height:844}});const p=await c.newPage();const e=[];p.on('pageerror',x=>e.push(x.message));p.on('console',m=>m.type()==='error'&&e.push(m.text()));
+const U=process.argv[2]||'https://larryappsml.github.io/impulse/';const r=await p.goto(U);console.log('status',r.status());
+const m=await p.evaluate(async()=>{const l=document.querySelector('link[rel=manifest]').href;const j=await (await fetch(l)).json();const ok=await Promise.all(j.icons.map(async i=>(await fetch(new URL(i.src,l))).status));return{l,start:new URL(j.start_url,l).href,scope:new URL(j.scope,l).href,ok}});console.log(JSON.stringify(m));
+await p.evaluate(()=>navigator.serviceWorker.ready);await p.reload();console.log('sw scope',await p.evaluate(async()=>(await navigator.serviceWorker.getRegistration()).scope),'ctl',await p.evaluate(()=>!!navigator.serviceWorker.controller));
+await c.setOffline(true);await p.reload();console.log('offline title',await p.title(),'h1',await p.locator('h1').first().textContent());console.log('errors',e);await b.close()})();
