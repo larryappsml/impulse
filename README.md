@@ -2,7 +2,7 @@
 App web instalable, sin servidor ni cuenta. Datos en `localStorage` del dispositivo. HTML/CSS/JS sin librerías.
 Demo: https://larryappsml.github.io/impulse/ (añade `?demo` para cargar 90 días de ejemplo en un navegador vacío).
 
-## Funciones (v1.8 · fase 8)
+## Funciones (v2.1 · insights personales)
 Catálogo de 55 hábitos en 8 categorías con buscador · Impulse score 0-100 con desglose y explicación · check-in matinal/nocturno · impacto de hábitos sobre score/sueño/calidad/energía/ánimo · calendario anual · mejores rachas · resumen semanal · iconos SVG propios · modo oscuro opcional · splash.
 
 ## Novedades de v1.8
@@ -32,3 +32,6 @@ Sin servidor de push no se puede programar una notificación exacta:
 
 ## Tests
 `npm i playwright-core` y, con la app servida en :8765 (`python3 -m http.server 8765`), `node tests/t.js`.
+
+## Insights personalizados v2.1
+Tendencias muestra **Descubre tu impacto**: promedios de sueño, energía o ánimo del día siguiente, relacionados con conductas registradas de forma explícita. Para cada hábito exige al menos 5 días con el comportamiento y 5 sin él, más 14 resultados globales. Compara asociaciones descriptivas; no deduce causalidad ni hace afirmaciones clínicas. Procesado 100 % local sin cuenta ni servidor.
