@@ -174,7 +174,7 @@ function form(id){const h0=S.habits.find(h=>h.id===id);const h=h0?JSON.parse(JSO
 function days(n,end){const t=end||addD(today(),-1);return Array.from({length:n},(_,i)=>addD(t,i-n+1))}
 function hasData(d){return S.log[d]&&Object.keys(S.log[d]).length>0}
 function chart(pts,goal,max,col){const W_=300,H=90,n=pts.length;const mx=Math.max(max||0,goal||0,...pts.map(p=>p??0))||1;
- const X=i=>n<2?W_/2:i/(n-1)*W_,Y=v=>H-6-(v/mx)*(H-14);let path='',pen=false;pts.forEach((p,i)=>{if(p==null)return;path+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(p).toFixed(1);pen=true});
+ const X=i=>n<2?W_/2:i/(n-1)*W_,Y=v=>H-6-(v/mx)*(H-14);let path='',pen=false;pts.forEach((p,i)=>{if(p==null){pen=false;return}path+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(p).toFixed(1);pen=true});
  return`<svg class="ch" viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none" style="height:90px" aria-hidden="true">${goal?`<line x1="0" x2="${W_}" y1="${Y(goal)}" y2="${Y(goal)}" style="stroke:var(--g)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`:''}<path class="draw" pathLength="1" d="${path}" fill="none" style="stroke:${col||'var(--a)'}" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`}
 function bars(vals){const W_=300,H=40,n=vals.length,w=W_/n;return`<svg class="ch" viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none" style="height:34px" aria-hidden="true">${vals.map((v,i)=>`<rect x="${i*w+w*.15}" y="${v?4:H-3}" width="${w*.7}" height="${v?H-4:3}" rx="1.5" style="fill:${v?'var(--a)':v===0?'var(--b)':'var(--c)'}"/>`).join('')}</svg>`}
 function targets(){const sh=sleepH();const T=[{k:'score',name:'Impulse score',unit:'pts',get:(d,a)=>{const p=scoreParts(d,a);return p?p.score:null}}];
