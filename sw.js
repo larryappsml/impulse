@@ -1,18 +1,11 @@
-const C='impulse-v19';const KEEP=[C,'impulse-state'];
-const A=['./','index.html','style.css','app.js','icons.js','catalog.js','manifest.webmanifest','fonts/Inter.ttf','icons/logo.svg','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>!KEEP.includes(x)).map(x=>caches.delete(x)))));self.clients.claim()});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==location.origin||e.request.url.endsWith('/__state'))return;
-e.respondWith(caches.open(C).then(async c=>{const cached=await c.match(e.request,{ignoreSearch:true});try{const fresh=await fetch(e.request);if(fresh.ok)await c.put(e.request,fresh.clone());return fresh}catch(err){if(cached)return cached;throw err}}))});
-// Recordatorio en segundo plano (solo navegadores con Periodic Background Sync, p. ej. Chrome Android con la app instalada)
-const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-self.addEventListener('periodicsync',e=>{if(e.tag!=='impulse-daily')return;e.waitUntil((async()=>{
- const c=await caches.open('impulse-state');const r=await c.match('./__state');if(!r)return;const s=await r.json();if(!s.rem||!s.rem.on)return;
- const now=new Date(),t=ds(now);const[hh,mm]=s.rem.time.split(':').map(Number);if(now.getHours()*60+now.getMinutes()<hh*60+mm||s.lastRem===t)return;
- const cl=await self.clients.matchAll({type:'window'});if(cl.some(x=>x.visibilityState==='visible'))return;
- const pending=s.date===t?s.pending:null;if(pending===0)return;
- await self.registration.showNotification('Impulse',{body:pending?`Te faltan ${pending} hábitos por registrar hoy.`:'¿Has registrado tus hábitos de hoy?',icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:'impulse-daily'});
- s.lastRem=t;await c.put('./__state',new Response(JSON.stringify(s)));cl.forEach(x=>x.postMessage('rem-shown'))})())});
-self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cl=>{const w=cl.find(x=>'focus'in x);return w?w.focus():self.clients.openWindow('./index.html#diario')}))});
-
-self.addEventListener('message',e=>{if(e.data&&e.data.type==='SKIP_WAITING')self.skipWaiting()});
+<!doctype html><html lang="es" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF"><meta name="description" content="Impulse: diario de hábitos de salud y rendimiento. Sin cuenta, funciona sin conexión.">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Impulse"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Impulse</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/logo.svg"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preload" href="fonts/Inter.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="style.css?v=22">
+<script>try{var t=(JSON.parse(localStorage.getItem('impulse.v1'))||{}).settings;t=t&&t.theme;if(t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'}catch(e){}</script></head>
+<body><div id="splash" aria-hidden="true"><img src="icons/logo.svg" width="72" height="72" alt=""><span class="wm">IMPULSE</span></div>
+<a class="skip" href="#view">Saltar al contenido</a><main id="view" tabindex="-1"></main>
+<nav id="tabs" aria-label="Secciones"><a href="#diario" data-t="diario"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Diario</a><a href="#tendencias" data-t="tendencias"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/></svg>Tendencias</a><a href="#anadir" data-t="anadir" class="plus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>Añadir</a><a href="#ajustes" data-t="ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Ajustes</a></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="icons.js"></script><script src="catalog.js"></script><script src="app.js?v=22"></script></body></html>
