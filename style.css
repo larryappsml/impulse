@@ -94,3 +94,6 @@ main.in{animation:vin .22s ease-out}@keyframes vin{from{opacity:0;transform:tran
 
 /* v1.7: favoritos en el diario */
 .pin-btn{border:0;background:var(--c);color:var(--m);border-radius:10px;min-width:38px;height:38px;font-size:21px;line-height:1;cursor:pointer}.pin-btn.on{color:var(--a);background:var(--al)}.pin-btn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+
+/* Impulse 1.8: favoritos visibles en cada hábito */
+.diary-control{display:flex;align-items:center;gap:8px;flex:none}.diary-pin{background:none;border:0;min-width:28px;min-height:34px;color:var(--g);font-size:23px;cursor:pointer;padding:0 2px}.diary-pin.on{color:var(--a)}.diary-pin:focus-visible{outline:2px solid var(--a);outline-offset:2px}@media(max-width:375px){.diary-control{gap:4px}.diary-pin{font-size:20px;min-width:23px}.hab .ic{width:32px;height:32px}.hab .nm{font-size:13px}}
