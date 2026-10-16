@@ -45,7 +45,7 @@ const W={c:.4,s:.25,a:.2,b:.15};
 function scoreParts(d,excl){if(!S.log[d])return null;const L=S.log[d];
  const hs=S.habits.filter(h=>counts(h)&&h!==excl&&active(d,h));const registered=hs.filter(h=>val(d,h)!=null);const c=registered.length?registered.filter(h=>done(d,h)).length/registered.length:null;
  const sh=sleepH();const sv=[];if(sh&&sh!==excl&&L[sh.id]!=null)sv.push(clamp(L[sh.id]/sh.goal));if(L._sueno_q)sv.push((L._sueno_q-1)/4);
- const ac=S.habits.filter(h=>h.cat==='Entreno'&&counts(h)&&h!==excl&&active(d,h)).map(h=>h.type==='qty'?clamp((L[h.id]||0)/(h.goal||1)):(val(d,h)!=null?(done(d,h)?1:0):null)).filter(x=>x!=null);
+ const ac=S.habits.filter(h=>h.cat==='Entreno'&&counts(h)&&h!==excl&&active(d,h)).map(h=>h.type==='qty'?(L[h.id]!=null?clamp(L[h.id]/(h.goal||1)):null):(val(d,h)!=null?(done(d,h)?1:0):null)).filter(x=>x!=null);
  const bv=[];for(const k of['_animo','_energia','_estres'])if(L[k])bv.push(MOOD[k].inv?(5-L[k])/4:(L[k]-1)/4);
  const P={c,s:avg(sv),a:ac.length?avg(ac):null,b:avg(bv)};let tw=0,tot=0;for(const k in W)if(P[k]!=null){tw+=W[k];tot+=W[k]*P[k]}
  return tw?{score:Math.round(tot/tw*100),P}:null}
@@ -191,12 +191,12 @@ function dfmt(diff,u){if(u==='horas'&&Math.abs(diff)<3)return(diff>0?'+':'−')+
 function heatmap(){const t=today();const end=addD(t,-1);const off=(wd(end)+6)%7;const start=addD(end,-(52*7+off));const cells=[];let c=start,i=0;
  while(c<=end){const s=scoreOf(c);const lv=s==null?0:s<40?1:s<60?2:s<80?3:4;const col=Math.floor(i/7),row=i%7;cells.push(`<rect x="${col*11}" y="${row*11}" width="9" height="9" rx="2" class="h${lv}"><title>${c}: ${s==null?'sin datos':s}</title></rect>`);c=addD(c,1);i++}
  const cols=Math.ceil(i/7);return`<svg class="heat" viewBox="0 0 ${cols*11} 77" role="img" aria-label="Calendario anual del Impulse score">${cells.join('')}</svg><div class="row sub" style="margin-top:6px"><span>Hace 1 año</span><span class="leg">Menos <i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i> Más</span><span>Ayer</span></div>`}
-function weekly(){const A=days(7),Bw=days(7,addD(today(),-8));const sa=avg(A.map(scoreOf).filter(x=>x!=null)),sb=avg(Bw.map(scoreOf).filter(x=>x!=null));
+function weekly(){const A=days(7),Bw=days(7,addD(today(),-8));const sa=avg(A.map(scoreOf).filter(x=>x!=null)),sb=avg(Bw.map(scoreOf).filter(x=>x!=null));const cov=avg(A.map(scoreCoverage).filter(x=>x>0));const logged=A.filter(hasData).length;
  const rate=h=>{const a=A.filter(d=>active(d,h)&&val(d,h)!=null);return a.length?a.filter(d=>done(d,h)).length/a.length:null};const hs=S.habits.filter(counts).map(h=>[h,rate(h)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]);
  const comp=avg(A.map(d=>{const a=S.habits.filter(h=>counts(h)&&active(d,h)&&val(d,h)!=null);return hasData(d)&&a.length?a.filter(h=>done(d,h)).length/a.length:null}).filter(x=>x!=null));
- if(sa==null)return'';const dlt=sb!=null?Math.round(sa-sb):null;
+ if(sa==null)return'';const dlt=sb!=null?Math.round(sa-sb):null;const advice=logged<4?'Registra al menos 4 días para empezar a ver tendencias semanales más fiables.':cov<75?'Completa más dimensiones del check-in para obtener una puntuación más representativa.':dlt!=null&&dlt>=5?'Tu puntuación media ha mejorado respecto a la semana anterior. Revisa qué hábitos mantuviste.':dlt!=null&&dlt<=-5?'Tu puntuación media ha bajado. Revisa sueño, actividad y posibles cambios de rutina.':'La constancia se construye día a día: mantén objetivos realistas y sostenibles.';
  return`<section class="card wk"><div class="lb">Resumen semanal · últimos 7 días</div><div class="row" style="margin-top:8px"><div><span class="big xl">${Math.round(sa)}</span><span class="sub"> score medio</span></div>${dlt!=null?`<span class="chip ${dlt>=0?'pos':'neg'}">${dlt>=0?'▲':'▼'} ${Math.abs(dlt)} vs. semana anterior</span>`:''}</div>
- <div class="g3"><div><b>${comp==null?'—':Math.round(comp*100)+' %'}</b><span>cumplimiento</span></div><div><b>${hs[0]?esc(hs[0][0].name):'—'}</b><span>más constante</span></div><div><b>${hs.length>1?esc(hs[hs.length-1][0].name):'—'}</b><span>a mejorar</span></div></div></section>`}
+ <div class="g3"><div><b>${comp==null?'—':Math.round(comp*100)+' %'}</b><span>cumplimiento</span></div><div><b>${hs[0]?esc(hs[0][0].name):'—'}</b><span>más constante</span></div><div><b>${hs.length>1?esc(hs[hs.length-1][0].name):'—'}</b><span>a mejorar</span></div></div><div class="weekly-insight"><b>Tu semana en perspectiva</b><p>${advice}</p><small>${logged}/7 días con registros · cobertura media ${cov==null?'—':Math.round(cov)+' %'}</small></div></section>`}
 function tendencias(){const D=days(range);const hs=S.habits;const logged=D.filter(hasData).length;const T=targets();if(!T.find(x=>x.k===impT))impT='score';const tg_=T.find(x=>x.k===impT);
  const sc=D.map(scoreOf);const scv=sc.filter(x=>x!=null);const imp=impact(D,tg_);
  const best=hs.filter(counts).map(h=>[h,bestStreak(h),streak(h,today())]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -252,7 +252,7 @@ function ajustes(){const nd=Object.keys(S.log).filter(hasData).length;const r=S.
  <h2 class="lb sec">Tus datos y copias de seguridad</h2><div class="card" style="line-height:1.55"><div class="nm">Tus datos son tuyos</div><div class="sub" style="margin-top:5px">Guarda una copia JSON para recuperar todos tus hábitos y registros, o descarga un CSV para analizar tu historial en Excel. Los datos permanecen en este dispositivo.</div></div>
  <button class="btn" id="ex">Exportar copia de seguridad (JSON)</button><button class="btn" id="csv">Descargar historial para Excel (CSV)</button><button class="btn g" id="imb">Importar copia de seguridad (JSON)</button><input type="file" id="im" accept="application/json,.json" hidden>
  <button class="btn r" id="rm">Borrar todos los datos</button>
- <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.4 · funciona sin conexión</span></div>`;
+ <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.5 · funciona sin conexión</span></div>`;
  V.querySelectorAll('[data-th]').forEach(e=>e.onclick=()=>{hap(5);S.settings.theme=e.dataset.th;save();applyTheme();ajustes()});
  V.querySelector('#rem').onclick=()=>{hap();enableReminders(!r.on)};
  const rt=V.querySelector('#rt');if(rt)rt.onchange=()=>{if(!rt.value)return;r.time=rt.value;S.settings.lastRem='';save();checkReminder();toast('Hora guardada')};
