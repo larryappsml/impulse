@@ -2,8 +2,11 @@
 App web instalable, sin servidor ni cuenta. Datos en `localStorage` del dispositivo. HTML/CSS/JS sin librerías.
 Demo: https://larryappsml.github.io/impulse/ (añade `?demo` para cargar 90 días de ejemplo en un navegador vacío).
 
-## Funciones (v1.7 · fase 7)
+## Funciones (v1.8 · fase 8)
 Catálogo de 55 hábitos en 8 categorías con buscador · Impulse score 0-100 con desglose y explicación · check-in matinal/nocturno · impacto de hábitos sobre score/sueño/calidad/energía/ánimo · calendario anual · mejores rachas · resumen semanal · iconos SVG propios · modo oscuro opcional · splash.
+
+## Novedades de v1.8
+Estrella para marcar favoritos directamente en cada tarjeta del Diario; pulsarla otra vez quita el favorito. Los hábitos de cantidad tienen la acción Borrar registro de hoy, para deshacer incluso un valor cero. Los hábitos sí/no mantienen su interruptor reversible y los hábitos a evitar permiten quitar la selección repitiendo el toque.
 
 ## Novedades de v1.7
 Favoritos: fija hábitos desde Añadir para mostrarlos al principio del Diario, sin alterar su historial. Los insights comparan solo registros explícitos y requieren al menos cinco observaciones de cada grupo. Se conserva la experiencia PWA gratuita y los datos en el dispositivo.
