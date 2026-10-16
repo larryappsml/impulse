@@ -25,13 +25,13 @@ function vu(v,u){const s=short(u);return fmt(v,u)+(s?' '+s:'')}
 function val(d,h){return(S.log[d]||{})[h.id||h]}
 function sched(d,h){return!h.days||!h.days.length||h.days.includes(wd(d))}
 function active(d,h){return sched(d,h)&&d>=h.created}
-function done(d,h){const v=val(d,h);if(h.type==='bool'){if(h.avoid)return d>=h.created&&v!==1;return v===1}if(h.max)return d>=h.created&&(v||0)<=h.goal;return(v||0)>=h.goal}
+function done(d,h){const v=val(d,h);if(h.type==='bool'){if(h.avoid)return v===0;return v===1}if(h.max)return v!=null&&v<=h.goal;return(v||0)>=h.goal}
 function happened(d,h){const v=val(d,h);if(h.type==='bool')return v===1;if(h.max)return(v||0)>h.goal;return(v||0)>=h.goal}
 function counts(h){return!h.neutral}
 function setVal(d,h,v){if(v!==undefined&&d<h.created)h.created=d;S.log[d]=S.log[d]||{};if(v===undefined)delete S.log[d][h.id];else S.log[d][h.id]=v;if(!Object.keys(S.log[d]).length)delete S.log[d];save()}
 function setK(d,k,v){S.log[d]=S.log[d]||{};if(v===undefined)delete S.log[d][k];else S.log[d][k]=v;if(!Object.keys(S.log[d]).length)delete S.log[d];save()}
-function streak(h,d){if(h.neutral)return 0;let n=0,c=d;if(!done(c,h))c=addD(c,-1);let g=0;const bound=h.max||h.avoid;while((!bound||c>=h.created)&&g++<3650){if(!sched(c,h)){if(!bound&&done(c,h))n++;c=addD(c,-1);continue}if(!done(c,h))break;n++;c=addD(c,-1)}return n}
-function bestStreak(h){if(h.neutral)return 0;const st=Object.keys(S.log).sort()[0];let c=st&&st<h.created&&!(h.max||h.avoid)?st:h.created,best=0,cur=0;const t=today();while(c<=t){if(sched(c,h)){if(done(c,h)){cur++;best=Math.max(best,cur)}else if(c<t)cur=0}else if(done(c,h)&&!(h.max||h.avoid)){cur++;best=Math.max(best,cur)}c=addD(c,1)}return best}
+function streak(h,d){if(h.neutral)return 0;let n=0,c=d;if(!done(c,h))c=addD(c,-1);let g=0;const bound=h.max||h.avoid;while(c>=h.created&&g++<3650){if(!sched(c,h)){if(!bound&&done(c,h))n++;c=addD(c,-1);continue}if(!done(c,h))break;n++;c=addD(c,-1)}return n}
+function bestStreak(h){if(h.neutral)return 0;let c=h.created,best=0,cur=0;const t=today();while(c<=t){if(sched(c,h)){if(done(c,h)){cur++;best=Math.max(best,cur)}else if(c<t)cur=0}else if(done(c,h)&&!(h.max||h.avoid)){cur++;best=Math.max(best,cur)}c=addD(c,1)}return best}
 function freqTxt(h){if(!h.days||!h.days.length||h.days.length===7)return'';return WD.filter(w=>h.days.includes(w[0])).map(w=>w[1]).join(' ')}
 function goalTxt(h){if(h.type==='bool')return h.neutral?'Contexto':h.avoid?'A evitar':'Sí / No';return(h.max?'Máx. ':'Meta ')+fmt(h.goal,h.unit)+' '+h.unit}
 function hap(ms){if(S.settings.haptics&&navigator.vibrate)try{navigator.vibrate(ms||8)}catch(e){}}
@@ -43,9 +43,9 @@ const clamp=x=>Math.max(0,Math.min(1,x));
 // ---------- Impulse score ----------
 const W={c:.4,s:.25,a:.2,b:.15};
 function scoreParts(d,excl){if(!S.log[d])return null;const L=S.log[d];
- const hs=S.habits.filter(h=>counts(h)&&h!==excl&&active(d,h));const c=hs.length?hs.filter(h=>done(d,h)).length/hs.length:null;
+ const hs=S.habits.filter(h=>counts(h)&&h!==excl&&active(d,h));const registered=hs.filter(h=>val(d,h)!=null);const c=registered.length?registered.filter(h=>done(d,h)).length/registered.length:null;
  const sh=sleepH();const sv=[];if(sh&&sh!==excl&&L[sh.id]!=null)sv.push(clamp(L[sh.id]/sh.goal));if(L._sueno_q)sv.push((L._sueno_q-1)/4);
- const ac=S.habits.filter(h=>h.cat==='Entreno'&&counts(h)&&h!==excl&&active(d,h)).map(h=>h.type==='qty'?clamp((L[h.id]||0)/(h.goal||1)):(done(d,h)?1:0));
+ const ac=S.habits.filter(h=>h.cat==='Entreno'&&counts(h)&&h!==excl&&active(d,h)).map(h=>h.type==='qty'?clamp((L[h.id]||0)/(h.goal||1)):(val(d,h)!=null?(done(d,h)?1:0):null)).filter(x=>x!=null);
  const bv=[];for(const k of['_animo','_energia','_estres'])if(L[k])bv.push(MOOD[k].inv?(5-L[k])/4:(L[k]-1)/4);
  const P={c,s:avg(sv),a:ac.length?avg(ac):null,b:avg(bv)};let tw=0,tot=0;for(const k in W)if(P[k]!=null){tw+=W[k];tot+=W[k]*P[k]}
  return tw?{score:Math.round(tot/tw*100),P}:null}
@@ -75,13 +75,13 @@ function onboarding(){const sel=new Set([0,1,2,4,5]);
 function mk(c){const h=JSON.parse(JSON.stringify(c));delete h.desc;h.id=uid();h.created=today();return h}
 
 function dots(k,v){const m=MOOD[k];return`<div class="mood"><div class="row"><span class="nm">${m.name}</span><span class="sub">${v?v+' / 5':'—'}</span></div><div class="dots" role="radiogroup" aria-label="${m.name}">${[1,2,3,4,5].map(n=>`<button role="radio" aria-checked="${v===n}" data-mo="${k}" data-n="${n}" class="${v>=n?'on':''}" aria-label="${m.name} ${n} de 5"><i></i></button>`).join('')}</div><div class="row sub"><span>${m.lo}</span><span>${m.hi}</span></div></div>`}
-function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts(h)&&sched(day,h));const nd=sc.filter(h=>done(day,h)).length;
+function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts(h)&&active(day,h));const nd=sc.filter(h=>done(day,h)).length;const registered=sc.filter(h=>val(day,h)!=null).length;
  const d=new Date(day+'T12:00:00');const lab=day===t?'Hoy':day===addD(t,-1)?'Ayer':'';
  const dstr=d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
  const item=(h,off)=>{const v=val(day,h);const ft=freqTxt(h);if(h.type==='bool'){const s=streak(h,day);const on=v===1;
-   return`<div class="card row hab ${off?'off':''} ${h.avoid?'av':''}"><div class="hn"><div class="ic">${ico(h.icon)}</div><div style="min-width:0"><div class="nm">${esc(h.name)}</div><div class="sub">${h.neutral?'Contexto':h.avoid?(on?'Ocurrió':'Evitado')+(s?' · racha '+s+' d':''):(s?'Racha '+s+' d':'Sin racha')}${ft?' · '+ft:''}</div></div></div>${tg(on,`data-b="${h.id}" data-fx="${h.id}"`,(h.avoid?'Ocurrió: ':'Hecho: ')+h.name)}</div>`}
-  const x=v||0;const ok=done(day,h);const cls=h.max?(x>h.goal?'neg':'ok'):(ok?'ok':'');const pct=h.max?(h.goal?clamp(x/h.goal):x?1:0):clamp(x/(h.goal||1));
-  return`<div class="card hab ${off?'off':''}"><div class="row"><div class="hn"><div class="ic">${ico(h.icon)}</div><div style="min-width:0"><div class="nm">${esc(h.name)}</div><div class="sub">${goalTxt(h)}${ft?' · '+ft:''}</div></div></div><div class="st"><button data-m="${h.id}" aria-label="Menos ${esc(h.name)}">−</button><b class="${cls}" data-fx="${h.id}" aria-live="polite">${vu(x,h.unit)}</b><button data-p="${h.id}" aria-label="Más ${esc(h.name)}">+</button></div></div><div class="mini ${h.max?(x>h.goal?'over':'cap'):''}"><i style="width:${pct*100}%"></i></div></div>`};
+   return`<div class="card row hab ${off?'off':''} ${h.avoid?'av':''}"><div class="hn"><div class="ic">${ico(h.icon)}</div><div style="min-width:0"><div class="nm">${esc(h.name)}</div><div class="sub">${h.neutral?'Contexto':h.avoid?(v===1?'Ocurrió':v===0?'Evitado ✓':'Sin registrar')+(s?' · racha '+s+' d':''):(s?'Racha '+s+' d':'Sin racha')}${ft?' · '+ft:''}</div></div></div>${h.avoid?`<div class="avoid-actions"><button class="avoid-choice ${v===0?'good':''}" data-safe="${h.id}" aria-pressed="${v===0}">No</button><button class="avoid-choice ${v===1?'bad':''}" data-b="${h.id}" aria-pressed="${v===1}">Sí</button></div>`:tg(on,`data-b="${h.id}" data-fx="${h.id}"`,'Hecho: '+h.name)}</div>`}
+  const x=v||0;const ok=done(day,h);const cls=h.max?(v==null?'':x>h.goal?'neg':'ok'):(ok?'ok':'');const pct=h.max?(h.goal?clamp(x/h.goal):x?1:0):clamp(x/(h.goal||1));
+  return`<div class="card hab ${off?'off':''}"><div class="row"><div class="hn"><div class="ic">${ico(h.icon)}</div><div style="min-width:0"><div class="nm">${esc(h.name)}</div><div class="sub">${goalTxt(h)}${ft?' · '+ft:''}</div></div></div><div class="st"><button data-m="${h.id}" aria-label="Menos ${esc(h.name)}">−</button><b class="${cls}" data-fx="${h.id}" aria-live="polite">${vu(x,h.unit)}</b><button data-p="${h.id}" aria-label="Más ${esc(h.name)}">+</button></div></div><div class="mini ${h.max?(x>h.goal?'over':'cap'):''}"><i style="width:${pct*100}%"></i></div>${h.max&&v==null?`<button class="zero-btn" data-zero="${h.id}">Registrar 0 ${esc(h.unit)} hoy</button>`:''}</div>`};
  const on=hs.filter(h=>sched(day,h)),off=hs.filter(h=>!sched(day,h));
  const grp=(l,a)=>a.length?`<h2 class="lb sec">${l}</h2>${a.map(h=>item(h)).join('')}`:'';
  const G=on.filter(h=>counts(h)&&!h.max&&!h.avoid),A=on.filter(h=>h.max||h.avoid),N=on.filter(h=>h.neutral);
@@ -93,8 +93,8 @@ function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts
  ${rem&&day===t?`<div class="card banner row" role="status">${ico('clock')}<span>Te ${rem===1?'falta 1 hábito':'faltan '+rem+' hábitos'} por registrar hoy</span></div>`:''}
  <section class="card hero" aria-label="Impulse score"><div class="hr"><div class="rw">${ring(sv,132,12)}<div class="rv"><b id="score">${sv==null?'—':sv}</b><span>IMPULSE</span></div></div>
  <div class="hp">${part('c','Constancia')}${part('s','Sueño')}${part('a','Actividad')}${part('b','Bienestar')}</div></div>
- <div class="row hf"><span class="sub">${day===t?'Hoy, en curso':'Puntuación del día'} · <b data-fx="prog">${nd}/${sc.length}</b> hábitos</span><button class="lnk" id="why" aria-expanded="false">${ico('info')} Cómo se calcula</button></div><div class="sub" style="margin-top:8px">Cobertura del score: <b>${cov}%</b> de dimensiones con datos${cov&&cov<100?' · puntuación parcial':''}</div>
- <div class="why" id="whyb" hidden><p><b>Impulse score (0-100)</b> = media ponderada de lo que hayas registrado:</p><ul><li><b>Constancia 40 %</b>: hábitos programados cumplidos (los de contexto no cuentan).</li><li><b>Sueño 25 %</b>: horas dormidas frente a tu meta y calidad del sueño del check-in.</li><li><b>Actividad 20 %</b>: progreso de tus hábitos de Entreno.</li><li><b>Bienestar 15 %</b>: ánimo, energía y estrés (invertido) del check-in.</li></ul><p class="sub">Si falta un apartado, su peso se reparte entre el resto. La cobertura indica cuántas de las cuatro dimensiones tienen datos, no su precisión ni la cantidad de registros. Los hábitos a evitar sin registrar pueden contar como cumplidos: interpreta la puntuación con cautela. Todo se calcula en tu dispositivo.</p></div></section>
+ <div class="row hf"><span class="sub">${day===t?'Hoy, en curso':'Puntuación del día'} · <b data-fx="prog">${nd}/${sc.length}</b> hábitos · ${registered} registrados</span><button class="lnk" id="why" aria-expanded="false">${ico('info')} Cómo se calcula</button></div><div class="sub" style="margin-top:8px">Cobertura del score: <b>${cov}%</b> de dimensiones con datos${cov&&cov<100?' · puntuación parcial':''}</div>
+ <div class="why" id="whyb" hidden><p><b>Impulse score (0-100)</b> = media ponderada de lo que hayas registrado:</p><ul><li><b>Constancia 40 %</b>: hábitos programados cumplidos (los de contexto no cuentan).</li><li><b>Sueño 25 %</b>: horas dormidas frente a tu meta y calidad del sueño del check-in.</li><li><b>Actividad 20 %</b>: progreso de tus hábitos de Entreno.</li><li><b>Bienestar 15 %</b>: ánimo, energía y estrés (invertido) del check-in.</li></ul><p class="sub">Si falta un apartado, su peso se reparte entre el resto. La cobertura indica cuántas de las cuatro dimensiones tienen datos, no su precisión ni la cantidad de registros. Los hábitos a evitar requieren confirmación: sin registrar no cuentan como cumplidos. La constancia se calcula sobre hábitos registrados. Todo se calcula en tu dispositivo.</p></div></section>
  <div class="ci"><button class="cib ${mDone?'done':''}" data-ci="am">${ico(mDone?'check':'sunrise')}<span><b>Check-in matinal</b><small>${mDone?'Hecho':'Sueño y energía'}</small></span></button><button class="cib ${eDone?'done':''} ${hr>=17&&!eDone?'hint':''}" data-ci="pm">${ico(eDone?'check':'moon')}<span><b>Check-in nocturno</b><small>${eDone?'Hecho':'Ánimo, estrés y nota'}</small></span></button></div>
  ${hs.length?`${grp('Hábitos',G)}${grp('A evitar',A)}${grp('Contexto del día',N)}
  ${off.length?`<details class="sec"${off.some(h=>val(day,h)!=null)?' open':''}><summary class="lb">No programados ${lab==='Hoy'?'hoy':'este día'} (${off.length})</summary>${off.map(h=>item(h,1)).join('')}</details>`:''}`
@@ -107,7 +107,9 @@ function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts
  V.querySelectorAll('[data-ci]').forEach(e=>e.onclick=()=>{hap();sheet(e.dataset.ci)});
  const chg=(before)=>{const a=S.habits.filter(h=>counts(h)&&sched(day,h));const n=a.filter(h=>done(day,h)).length;if(a.length&&n===a.length&&before<a.length){hap([12,40,12]);toast('Día completado ✓')}};
  V.querySelectorAll('[data-b]').forEach(e=>e.onclick=()=>{const h=H(e.dataset.b);hap();const b=nd;setVal(day,h,val(day,h)===1?undefined:1);flash=h.id;diario();chg(b)});
- V.querySelectorAll('[data-p],[data-m]').forEach(e=>e.onclick=()=>{const p=!!e.dataset.p;const h=H(e.dataset.p||e.dataset.m);const st=h.step||1;const cur=val(day,h)||0;if(!p&&cur<=0)return;let x=Math.round((cur+(p?st:-st))*100)/100;if(x<0)x=0;hap();const b=nd;setVal(day,h,x||undefined);flash=h.id;diario();chg(b)});
+ V.querySelectorAll('[data-safe]').forEach(e=>e.onclick=()=>{const h=H(e.dataset.safe);hap();setVal(day,h,val(day,h)===0?undefined:0);diario()});
+ V.querySelectorAll('[data-zero]').forEach(e=>e.onclick=()=>{const h=H(e.dataset.zero);hap();setVal(day,h,0);diario()});
+ V.querySelectorAll('[data-p],[data-m]').forEach(e=>e.onclick=()=>{const p=!!e.dataset.p;const h=H(e.dataset.p||e.dataset.m);const st=h.step||1;const cur=val(day,h)||0;if(!p&&cur<=0)return;let x=Math.round((cur+(p?st:-st))*100)/100;if(x<0)x=0;hap();const b=nd;setVal(day,h,h.max?x:(x||undefined));flash=h.id;diario();chg(b)});
  after()}
 
 // ---------- Check-in (hoja inferior) ----------
@@ -190,8 +192,8 @@ function heatmap(){const t=today();const end=addD(t,-1);const off=(wd(end)+6)%7;
  while(c<=end){const s=scoreOf(c);const lv=s==null?0:s<40?1:s<60?2:s<80?3:4;const col=Math.floor(i/7),row=i%7;cells.push(`<rect x="${col*11}" y="${row*11}" width="9" height="9" rx="2" class="h${lv}"><title>${c}: ${s==null?'sin datos':s}</title></rect>`);c=addD(c,1);i++}
  const cols=Math.ceil(i/7);return`<svg class="heat" viewBox="0 0 ${cols*11} 77" role="img" aria-label="Calendario anual del Impulse score">${cells.join('')}</svg><div class="row sub" style="margin-top:6px"><span>Hace 1 año</span><span class="leg">Menos <i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i> Más</span><span>Ayer</span></div>`}
 function weekly(){const A=days(7),Bw=days(7,addD(today(),-8));const sa=avg(A.map(scoreOf).filter(x=>x!=null)),sb=avg(Bw.map(scoreOf).filter(x=>x!=null));
- const rate=h=>{const a=A.filter(d=>active(d,h));return a.length?a.filter(d=>done(d,h)).length/a.length:null};const hs=S.habits.filter(counts).map(h=>[h,rate(h)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]);
- const comp=avg(A.map(d=>{const a=S.habits.filter(h=>counts(h)&&active(d,h));return hasData(d)&&a.length?a.filter(h=>done(d,h)).length/a.length:null}).filter(x=>x!=null));
+ const rate=h=>{const a=A.filter(d=>active(d,h)&&val(d,h)!=null);return a.length?a.filter(d=>done(d,h)).length/a.length:null};const hs=S.habits.filter(counts).map(h=>[h,rate(h)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]);
+ const comp=avg(A.map(d=>{const a=S.habits.filter(h=>counts(h)&&active(d,h)&&val(d,h)!=null);return hasData(d)&&a.length?a.filter(h=>done(d,h)).length/a.length:null}).filter(x=>x!=null));
  if(sa==null)return'';const dlt=sb!=null?Math.round(sa-sb):null;
  return`<section class="card wk"><div class="lb">Resumen semanal · últimos 7 días</div><div class="row" style="margin-top:8px"><div><span class="big xl">${Math.round(sa)}</span><span class="sub"> score medio</span></div>${dlt!=null?`<span class="chip ${dlt>=0?'pos':'neg'}">${dlt>=0?'▲':'▼'} ${Math.abs(dlt)} vs. semana anterior</span>`:''}</div>
  <div class="g3"><div><b>${comp==null?'—':Math.round(comp*100)+' %'}</b><span>cumplimiento</span></div><div><b>${hs[0]?esc(hs[0][0].name):'—'}</b><span>más constante</span></div><div><b>${hs.length>1?esc(hs[hs.length-1][0].name):'—'}</b><span>a mejorar</span></div></div></section>`}
@@ -208,16 +210,16 @@ function tendencias(){const D=days(range);const hs=S.habits;const logged=D.filte
  <h2 class="lb sec">Calendario · último año</h2><section class="card">${heatmap()}</section>
  ${best.length?`<h2 class="lb sec">Mejores rachas</h2><section class="card">${best.map(([h,b,c])=>`<div class="row br"><div class="hn"><div class="ic sm">${ico(h.icon)}</div><div class="nm">${esc(h.name)}</div></div><div style="text-align:right"><b>${b} d</b><div class="sub">actual ${c} d</div></div></div>`).join('')}</section>`:''}
  <h2 class="lb sec">Por hábito</h2>
- ${hs.map(h=>{const ft=freqTxt(h);if(h.type==='bool'){const v=D.map(d=>!active(d,h)?null:hasData(d)?(happened(d,h)?1:0):null);const k=v.filter(x=>x!=null);const p=k.length?Math.round(k.filter(x=>x).length/k.length*100):0;
+ ${hs.map(h=>{const ft=freqTxt(h);if(h.type==='bool'){const v=D.map(d=>!active(d,h)?null:val(d,h)!=null?(happened(d,h)?1:0):null);const k=v.filter(x=>x!=null);const p=k.length?Math.round(k.filter(x=>x).length/k.length*100):0;
   return`<section class="card"><div class="row"><div class="hn"><div class="ic">${ico(h.icon)}</div><div><div class="nm">${esc(h.name)}</div><div class="sub">${h.neutral?'Contexto · días que ocurrió':h.avoid?'Días que ocurrió':'Racha actual '+streak(h,today())+' d'}${ft?' · '+ft:''}</div></div></div><span class="big">${p} %</span></div>${bars(v)}</section>`}
-  const v=D.map(d=>hasData(d)&&active(d,h)?(val(d,h)??0):null);const k=v.filter(x=>x!=null);const m=avg(k)||0;const half=Math.floor(k.length/2);
+  const v=D.map(d=>active(d,h)?(val(d,h)??null):null);const k=v.filter(x=>x!=null);const m=avg(k)||0;const half=Math.floor(k.length/2);
   let tr='';if(k.length>=6){const d=avg(k.slice(-half))-avg(k.slice(0,half));if(Math.abs(d)>1e-9){const good=h.max?d<0:d>0;tr=`<span class="${good?'pos':'neg'}" style="font-size:12px"> ${d>0?'▲':'▼'} ${fmt(Math.abs(d),h.unit)}</span>`}}
   return`<section class="card"><div class="row"><div class="hn"><div class="ic">${ico(h.icon)}</div><div><div class="nm">${esc(h.name)}</div><div class="sub">Media · ${h.max?'máx.':'meta'} ${fmt(h.goal,h.unit)} ${h.unit}${ft?' · '+ft:''}</div></div></div><span class="big" style="white-space:nowrap">${vu(m,h.unit)}${tr}</span></div>${chart(v,h.goal||0.0001,0,h.max?'var(--w)':undefined)}</section>`}).join('')}`}`;
  V.querySelectorAll('[data-r]').forEach(e=>e.onclick=()=>{hap(5);range=+e.dataset.r;tendencias()});
  V.querySelectorAll('[data-it]').forEach(e=>e.onclick=()=>{hap(5);impT=e.dataset.it;const y=scrollY;tendencias();scrollTo(0,y)})}
 
 // ---------- Recordatorios ----------
-function pendingToday(){const t=today();return S.habits.filter(h=>counts(h)&&sched(t,h)&&!h.max&&!h.avoid&&!done(t,h)).length}
+function pendingToday(){const t=today();return S.habits.filter(h=>counts(h)&&active(t,h)&&!done(t,h)).length}
 function reminderDue(){const r=S.settings.rem;if(!r.on||!S.habits.length)return 0;const now=new Date();const[hh,mm]=r.time.split(':').map(Number);if(now.getHours()*60+now.getMinutes()<hh*60+mm)return 0;return pendingToday()}
 async function notify(n){if(!('Notification'in window)||Notification.permission!=='granted')return false;const body=`Te ${n===1?'falta 1 hábito':'faltan '+n+' hábitos'} por registrar hoy.`;
  try{const reg=await navigator.serviceWorker?.getRegistration();if(reg){await reg.showNotification('Impulse',{body,icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:'impulse-daily'});return true}new Notification('Impulse',{body,icon:'icons/icon-192.png'});return true}catch(e){return false}}
@@ -250,7 +252,7 @@ function ajustes(){const nd=Object.keys(S.log).filter(hasData).length;const r=S.
  <h2 class="lb sec">Tus datos y copias de seguridad</h2><div class="card" style="line-height:1.55"><div class="nm">Tus datos son tuyos</div><div class="sub" style="margin-top:5px">Guarda una copia JSON para recuperar todos tus hábitos y registros, o descarga un CSV para analizar tu historial en Excel. Los datos permanecen en este dispositivo.</div></div>
  <button class="btn" id="ex">Exportar copia de seguridad (JSON)</button><button class="btn" id="csv">Descargar historial para Excel (CSV)</button><button class="btn g" id="imb">Importar copia de seguridad (JSON)</button><input type="file" id="im" accept="application/json,.json" hidden>
  <button class="btn r" id="rm">Borrar todos los datos</button>
- <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.3 · funciona sin conexión</span></div>`;
+ <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.4 · funciona sin conexión</span></div>`;
  V.querySelectorAll('[data-th]').forEach(e=>e.onclick=()=>{hap(5);S.settings.theme=e.dataset.th;save();applyTheme();ajustes()});
  V.querySelector('#rem').onclick=()=>{hap();enableReminders(!r.on)};
  const rt=V.querySelector('#rt');if(rt)rt.onchange=()=>{if(!rt.value)return;r.time=rt.value;S.settings.lastRem='';save();checkReminder();toast('Hora guardada')};
