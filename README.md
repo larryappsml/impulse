@@ -2,8 +2,11 @@
 App web instalable, sin servidor ni cuenta. Datos en `localStorage` del dispositivo. HTML/CSS/JS sin librerías.
 Demo: https://larryappsml.github.io/impulse/ (añade `?demo` para cargar 90 días de ejemplo en un navegador vacío).
 
-## Funciones (v1.2 · fase 3)
+## Funciones (v1.4 · fase 4)
 Catálogo de 55 hábitos en 8 categorías con buscador · Impulse score 0-100 con desglose y explicación · check-in matinal/nocturno · impacto de hábitos sobre score/sueño/calidad/energía/ánimo · calendario anual · mejores rachas · resumen semanal · iconos SVG propios · modo oscuro opcional · splash.
+
+## Novedades de v1.4
+Los hábitos a evitar de tipo sí/no requieren marcar **No** (evitado) o **Sí** (ocurrió). Sin registro no cuentan como cumplidos. Los límites de cantidad permiten registrar cero explícitamente. La constancia del score se calcula con registros disponibles. El Diario indica cuántos hábitos se han registrado. Las tendencias respetan huecos de datos y se mantiene la exportación CSV en Ajustes.
 
 ## Funciones previas
 Hábitos sí/no y de cantidad (mínimo o **a evitar** con máximo) · frecuencia diaria o días concretos (los no programados no rompen rachas) · reordenar · ánimo/energía 1-5 y nota diaria · tendencias 7/30/90 d (sin contar hoy) y correlaciones (≥14 días) · recordatorio diario · háptica · exportar/importar JSON · offline.
