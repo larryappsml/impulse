@@ -64,7 +64,7 @@ ck('micro-animación pop aplicada',await p.locator(`[data-fx="${sid}"].pop`).cou
 await p.locator(`[data-m="${sid}"]`).click();
 // hábito a evitar (max)
 s=await st();const alc=s.habits.find(h=>h.max);ck('onboarding incluye hábito a evitar',!!alc);
-ck('a evitar cuenta como cumplido sin registro',await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),alc.id));
+ck('máximo sin registro no cuenta como cumplido',!(await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),alc.id)));
 await p.locator(`[data-p="${alc.id}"]`).click();await p.locator(`[data-p="${alc.id}"]`).click();
 ck('a evitar: superar máximo = no cumplido y en rojo',!(await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),alc.id))&&await p.locator(`[data-fx="${alc.id}"].neg`).count()===1);
 await p.locator(`[data-m="${alc.id}"]`).click();await p.locator(`[data-m="${alc.id}"]`).click();
@@ -127,8 +127,9 @@ ck('botón pasa a añadido',await p.locator('[data-add="Cafeína después de las
 await p.locator('[data-cat="Estilo de vida"]').click();await p.locator('[data-add="Viaje"]').click();await p.locator('[data-cat="Todos"]').click();
 s=await st();const cafH=s.habits.find(h=>h.name.startsWith('Cafeína')),viH=s.habits.find(h=>h.name==='Viaje');
 await p.goto(U+'#diario');
-ck('hábito a evitar sí/no cumplido si no ocurre',await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),cafH.id));
-await p.locator(`[data-b="${cafH.id}"]`).click();ck('a evitar marcado = no cumplido',!(await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),cafH.id)));await p.locator(`[data-b="${cafH.id}"]`).click();
+ck('evitar sin confirmar queda pendiente',!(await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),cafH.id)));
+await p.locator(`[data-safe="${cafH.id}"]`).click();ck('confirmar que no ocurrió cuenta como cumplido',await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),cafH.id));
+await p.locator(`[data-b="${cafH.id}"]`).click();ck('a evitar marcado = no cumplido',!(await p.evaluate(id=>done(today(),S.habits.find(h=>h.id===id)),cafH.id)));await p.locator(`[data-safe="${cafH.id}"]`).click();
 ck('contexto no cuenta en constancia',await p.evaluate(id=>{const a=S.habits.filter(h=>counts(h)&&sched(today(),h));return!a.find(h=>h.id===id)},viH.id)&&await p.locator('text=Contexto del día').count()===1);
 // tema oscuro
 await p.goto(U+'#ajustes');await p.locator('[data-th="dark"]').click();ck('modo oscuro',await p.evaluate(()=>document.documentElement.dataset.theme)==='dark');
