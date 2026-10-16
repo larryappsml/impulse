@@ -83,13 +83,13 @@ function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts
   const x=v||0;const ok=done(day,h);const cls=h.max?(v==null?'':x>h.goal?'neg':'ok'):(ok?'ok':'');const pct=h.max?(h.goal?clamp(x/h.goal):x?1:0):clamp(x/(h.goal||1));
   return`<div class="card hab ${off?'off':''}"><div class="row"><div class="hn"><div class="ic">${ico(h.icon)}</div><div style="min-width:0"><div class="nm">${esc(h.name)}</div><div class="sub">${goalTxt(h)}${ft?' · '+ft:''}</div></div></div><div class="st">${star}<button data-m="${h.id}" aria-label="Menos ${esc(h.name)}">−</button><b class="${cls}" data-fx="${h.id}" aria-live="polite">${vu(x,h.unit)}</b><button data-p="${h.id}" aria-label="Más ${esc(h.name)}">+</button></div></div><div class="mini ${h.max?(x>h.goal?'over':'cap'):''}"><i style="width:${pct*100}%"></i></div>${h.max&&v==null?`<button class="zero-btn" data-zero="${h.id}">Registrar 0 ${esc(h.unit)} hoy</button>`:''}${v!=null?`<button class="zero-btn" data-clear="${h.id}">Borrar registro de hoy</button>`:''}</div>`};
  const on=hs.filter(h=>sched(day,h)),off=hs.filter(h=>!sched(day,h));const pinned=on.filter(h=>h.pinned),rest=on.filter(h=>!h.pinned);
- const grp=(l,a)=>a.length?`<h2 class="lb sec">${l}</h2>${a.map(h=>item(h)).join('')}`:'';
+ const grp=(l,a)=>a.length?`<div class="section-head"><h2 class="lb sec">${l}</h2><span>${a.length}</span></div>${a.map(h=>item(h)).join('')}`:'';
  const G=rest.filter(h=>counts(h)&&!h.max&&!h.avoid),A=rest.filter(h=>h.max||h.avoid),N=rest.filter(h=>h.neutral);
  const L=S.log[day]||{};const rem=reminderDue();const sp=scoreParts(day);const sv=sp?sp.score:null;
  const mDone=!!(L._sueno_q||L._energia),eDone=!!(L._animo||L._estres||S.notes[day]);const hr=new Date().getHours();const cov=scoreCoverage(day);
  const part=(k,l)=>{const v=sp&&sp.P[k];return`<div class="pt"><span>${l}</span><b>${v==null?'—':Math.round(v*100)}</b></div>`};
  V.innerHTML=`<div class="dn"><button id="pv" aria-label="Día anterior">${ico('chev','flip')}</button><div class="lb">${dstr}</div><button id="nx" ${day>=t?'disabled':''} aria-label="Día siguiente">${ico('chev')}</button></div>
- <h1>Diario${lab&&lab!=='Hoy'?' · '+lab:''}</h1><div class="sub" style="margin-top:-5px;margin-bottom:14px">Tu progreso, a tu ritmo.</div>
+ <div class="page-heading"><div><div class="eyebrow">TU ESPACIO PERSONAL</div><h1>Diario${lab&&lab!=='Hoy'?' · '+lab:''}</h1><p class="page-desc">Pequeños hábitos. Grandes cambios.</p></div><span class="page-mark" aria-hidden="true">✦</span></div>
  ${rem&&day===t?`<div class="card banner row" role="status">${ico('clock')}<span>Te ${rem===1?'falta 1 hábito':'faltan '+rem+' hábitos'} por registrar hoy</span></div>`:''}
  <section class="card hero" aria-label="Impulse score"><div class="hr"><div class="rw">${ring(sv,132,12)}<div class="rv"><b id="score">${sv==null?'—':sv}</b><span>IMPULSE</span></div></div>
  <div class="hp">${part('c','Constancia')}${part('s','Sueño')}${part('a','Actividad')}${part('b','Bienestar')}</div></div>
@@ -210,7 +210,7 @@ function safeImpactForecast(){try{return impactForecast()}catch(e){console.warn(
 function tendencias(){const D=days(range);const hs=S.habits;const logged=D.filter(hasData).length;const T=targets();if(!T.find(x=>x.k===impT))impT='score';const tg_=T.find(x=>x.k===impT);
  const sc=D.map(scoreOf);const scv=sc.filter(x=>x!=null);const imp=impact(D,tg_);
  const best=hs.filter(counts).map(h=>[h,bestStreak(h),streak(h,today())]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5);
- V.innerHTML=`<div class="lb" id="tsub">Últimos ${range} días · sin contar hoy</div><h1>Tendencias</h1>
+ V.innerHTML=`<div class="lb" id="tsub">Últimos ${range} días · sin contar hoy</div><div class="page-heading"><div><div class="eyebrow">TU EVOLUCIÓN</div><h1>Tendencias</h1><p class="page-desc">Entiende lo que hay detrás de tus días.</p></div></div>
  <div class="seg" role="tablist">${[7,30,90].map(r=>`<button role="tab" aria-selected="${r===range}" data-r="${r}" class="${r===range?'a':''}">${r} d</button>`).join('')}</div>
  ${!hs.length?`<div class="empty">Añade hábitos y registra unos días para ver tendencias.</div>`:`<div class="metric-grid">${quickMetrics(D)}</div>${safeImpactForecast()}${weekly()}
  <section class="card"><div class="row"><span class="nm">Impulse score medio</span><span class="big">${scv.length?Math.round(avg(scv)):'—'}</span></div><div class="sub" id="tlog">${logged} de ${range} días con registros</div>${chart(sc,0,100)}</section>
@@ -262,7 +262,7 @@ function ajustes(){const nd=Object.keys(S.log).filter(hasData).length;const r=S.
  <h2 class="lb sec">Tus datos y copias de seguridad</h2><div class="card" style="line-height:1.55"><div class="nm">Tus datos son tuyos</div><div class="sub" style="margin-top:5px">Guarda una copia JSON para recuperar todos tus hábitos y registros, o descarga un CSV para analizar tu historial en Excel. Los datos permanecen en este dispositivo.</div></div>
  <button class="btn" id="ex">Exportar copia de seguridad (JSON)</button><button class="btn" id="csv">Descargar historial para Excel (CSV)</button><button class="btn g" id="imb">Importar copia de seguridad (JSON)</button><input type="file" id="im" accept="application/json,.json" hidden>
  <button class="btn r" id="rm">Borrar todos los datos</button>
- <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v2.1.1 · funciona sin conexión</span></div>`;
+ <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v2.2 · funciona sin conexión</span></div>`;
  V.querySelectorAll('[data-th]').forEach(e=>e.onclick=()=>{hap(5);S.settings.theme=e.dataset.th;save();applyTheme();ajustes()});
  V.querySelector('#rem').onclick=()=>{hap();enableReminders(!r.on)};
  const rt=V.querySelector('#rt');if(rt)rt.onchange=()=>{if(!rt.value)return;r.time=rt.value;S.settings.lastRem='';save();checkReminder();toast('Hora guardada')};
