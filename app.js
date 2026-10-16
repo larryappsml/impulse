@@ -256,7 +256,7 @@ function ajustes(){const nd=Object.keys(S.log).filter(hasData).length;const r=S.
  <h2 class="lb sec">Tus datos y copias de seguridad</h2><div class="card" style="line-height:1.55"><div class="nm">Tus datos son tuyos</div><div class="sub" style="margin-top:5px">Guarda una copia JSON para recuperar todos tus hábitos y registros, o descarga un CSV para analizar tu historial en Excel. Los datos permanecen en este dispositivo.</div></div>
  <button class="btn" id="ex">Exportar copia de seguridad (JSON)</button><button class="btn" id="csv">Descargar historial para Excel (CSV)</button><button class="btn g" id="imb">Importar copia de seguridad (JSON)</button><input type="file" id="im" accept="application/json,.json" hidden>
  <button class="btn r" id="rm">Borrar todos los datos</button>
- <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.9 · funciona sin conexión</span></div>`;
+ <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v2.0 · funciona sin conexión</span></div>`;
  V.querySelectorAll('[data-th]').forEach(e=>e.onclick=()=>{hap(5);S.settings.theme=e.dataset.th;save();applyTheme();ajustes()});
  V.querySelector('#rem').onclick=()=>{hap();enableReminders(!r.on)};
  const rt=V.querySelector('#rt');if(rt)rt.onchange=()=>{if(!rt.value)return;r.time=rt.value;S.settings.lastRem='';save();checkReminder();toast('Hora guardada')};
