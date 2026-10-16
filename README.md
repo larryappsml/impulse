@@ -2,8 +2,11 @@
 App web instalable, sin servidor ni cuenta. Datos en `localStorage` del dispositivo. HTML/CSS/JS sin librerías.
 Demo: https://larryappsml.github.io/impulse/ (añade `?demo` para cargar 90 días de ejemplo en un navegador vacío).
 
-## Funciones (v1.5 · fase 5)
+## Funciones (v1.6 · fase 6)
 Catálogo de 55 hábitos en 8 categorías con buscador · Impulse score 0-100 con desglose y explicación · check-in matinal/nocturno · impacto de hábitos sobre score/sueño/calidad/energía/ánimo · calendario anual · mejores rachas · resumen semanal · iconos SVG propios · modo oscuro opcional · splash.
+
+## Novedades de v1.6
+Impulse Score con pesos fijos: constancia 40 %, sueño 25 %, actividad 20 %, bienestar 15 %. Los apartados ausentes no redistribuyen sus puntos y la puntuación se etiqueta como provisional. La constancia diaria usa todos los hábitos programados, no solo los registrados. Esto evita puntuaciones artificialmente altas con uno o dos registros.
 
 ## Novedades de v1.5
 Perspectiva semanal contextual con cobertura y días registrados, cálculos de actividad que excluyen entradas ausentes, y aviso de actualización de versión en la PWA. Una app de la pantalla de inicio puede seguir sirviendo recursos de una versión anterior hasta que el service worker actualice y la app vuelva a cargarse.
