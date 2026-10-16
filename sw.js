@@ -1,4 +1,4 @@
-const C='impulse-v10';const KEEP=[C,'impulse-state'];
+const C='impulse-v11';const KEEP=[C,'impulse-state'];
 const A=['./','index.html','style.css','app.js','icons.js','catalog.js','manifest.webmanifest','fonts/Inter.ttf','icons/logo.svg','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>!KEEP.includes(x)).map(x=>caches.delete(x)))));self.clients.claim()});
@@ -14,3 +14,5 @@ self.addEventListener('periodicsync',e=>{if(e.tag!=='impulse-daily')return;e.wai
  await self.registration.showNotification('Impulse',{body:pending?`Te faltan ${pending} hábitos por registrar hoy.`:'¿Has registrado tus hábitos de hoy?',icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:'impulse-daily'});
  s.lastRem=t;await c.put('./__state',new Response(JSON.stringify(s)));cl.forEach(x=>x.postMessage('rem-shown'))})())});
 self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cl=>{const w=cl.find(x=>'focus'in x);return w?w.focus():self.clients.openWindow('./index.html#diario')}))});
+
+self.addEventListener('message',e=>{if(e.data&&e.data.type==='SKIP_WAITING')self.skipWaiting()});
