@@ -43,12 +43,12 @@ const clamp=x=>Math.max(0,Math.min(1,x));
 // ---------- Impulse score ----------
 const W={c:.4,s:.25,a:.2,b:.15};
 function scoreParts(d,excl){if(!S.log[d])return null;const L=S.log[d];
- const hs=S.habits.filter(h=>counts(h)&&h!==excl&&active(d,h));const registered=hs.filter(h=>val(d,h)!=null);const c=registered.length?registered.filter(h=>done(d,h)).length/registered.length:null;
+ const hs=S.habits.filter(h=>counts(h)&&h!==excl&&active(d,h));const registered=hs.filter(h=>val(d,h)!=null);const c=hs.length?hs.filter(h=>done(d,h)).length/hs.length:null;
  const sh=sleepH();const sv=[];if(sh&&sh!==excl&&L[sh.id]!=null)sv.push(clamp(L[sh.id]/sh.goal));if(L._sueno_q)sv.push((L._sueno_q-1)/4);
  const ac=S.habits.filter(h=>h.cat==='Entreno'&&counts(h)&&h!==excl&&active(d,h)).map(h=>h.type==='qty'?(L[h.id]!=null?clamp(L[h.id]/(h.goal||1)):null):(val(d,h)!=null?(done(d,h)?1:0):null)).filter(x=>x!=null);
  const bv=[];for(const k of['_animo','_energia','_estres'])if(L[k])bv.push(MOOD[k].inv?(5-L[k])/4:(L[k]-1)/4);
- const P={c,s:avg(sv),a:ac.length?avg(ac):null,b:avg(bv)};let tw=0,tot=0;for(const k in W)if(P[k]!=null){tw+=W[k];tot+=W[k]*P[k]}
- return tw?{score:Math.round(tot/tw*100),P}:null}
+ const P={c,s:avg(sv),a:ac.length?avg(ac):null,b:avg(bv)};let available=0,weighted=0;for(const k in W)if(P[k]!=null){available+=W[k];weighted+=W[k]*P[k]}
+ return available?{score:Math.round(weighted*100),P,available}:null}
 function scoreOf(d){const p=scoreParts(d);return p?p.score:null}
 function scoreCoverage(d){const p=scoreParts(d);if(!p)return 0;return Math.round(Object.values(p.P).filter(x=>x!=null).length/4*100)}
 function ring(v,size,sw,lab){const r=(size-sw)/2,C=2*Math.PI*r,f=v==null?0:v/100;
@@ -93,8 +93,8 @@ function diario(){const t=today();const hs=S.habits;const sc=hs.filter(h=>counts
  ${rem&&day===t?`<div class="card banner row" role="status">${ico('clock')}<span>Te ${rem===1?'falta 1 hábito':'faltan '+rem+' hábitos'} por registrar hoy</span></div>`:''}
  <section class="card hero" aria-label="Impulse score"><div class="hr"><div class="rw">${ring(sv,132,12)}<div class="rv"><b id="score">${sv==null?'—':sv}</b><span>IMPULSE</span></div></div>
  <div class="hp">${part('c','Constancia')}${part('s','Sueño')}${part('a','Actividad')}${part('b','Bienestar')}</div></div>
- <div class="row hf"><span class="sub">${day===t?'Hoy, en curso':'Puntuación del día'} · <b data-fx="prog">${nd}/${sc.length}</b> hábitos · ${registered} registrados</span><button class="lnk" id="why" aria-expanded="false">${ico('info')} Cómo se calcula</button></div><div class="sub" style="margin-top:8px">Cobertura del score: <b>${cov}%</b> de dimensiones con datos${cov&&cov<100?' · puntuación parcial':''}</div>
- <div class="why" id="whyb" hidden><p><b>Impulse score (0-100)</b> = media ponderada de lo que hayas registrado:</p><ul><li><b>Constancia 40 %</b>: hábitos programados cumplidos (los de contexto no cuentan).</li><li><b>Sueño 25 %</b>: horas dormidas frente a tu meta y calidad del sueño del check-in.</li><li><b>Actividad 20 %</b>: progreso de tus hábitos de Entreno.</li><li><b>Bienestar 15 %</b>: ánimo, energía y estrés (invertido) del check-in.</li></ul><p class="sub">Si falta un apartado, su peso se reparte entre el resto. La cobertura indica cuántas de las cuatro dimensiones tienen datos, no su precisión ni la cantidad de registros. Los hábitos a evitar requieren confirmación: sin registrar no cuentan como cumplidos. La constancia se calcula sobre hábitos registrados. Todo se calcula en tu dispositivo.</p></div></section>
+ <div class="row hf"><span class="sub">${day===t?'Hoy, en curso':'Puntuación del día'} · <b data-fx="prog">${nd}/${sc.length}</b> hábitos · ${registered} registrados</span><button class="lnk" id="why" aria-expanded="false">${ico('info')} Cómo se calcula</button></div><div class="sub" style="margin-top:8px">Cobertura del score: <b>${cov}%</b> de dimensiones con datos${cov<100?' · score provisional':''}</div>
+ <div class="why" id="whyb" hidden><p><b>Impulse score (0-100)</b> = media ponderada de lo que hayas registrado:</p><ul><li><b>Constancia 40 %</b>: hábitos cumplidos entre todos los programados, aunque queden registros pendientes (los de contexto no cuentan).</li><li><b>Sueño 25 %</b>: horas dormidas frente a tu meta y calidad del sueño del check-in.</li><li><b>Actividad 20 %</b>: progreso de tus hábitos de Entreno.</li><li><b>Bienestar 15 %</b>: ánimo, energía y estrés (invertido) del check-in.</li></ul><p class="sub">Cada dimensión tiene un peso fijo: los apartados sin datos no dan puntos y el resultado es provisional hasta completarlos. La constancia cuenta hábitos programados, incluidos los pendientes; un único hábito completado no equivale a un día perfecto. La cobertura indica cuántas dimensiones tienen información, no la precisión del resultado. Los hábitos a evitar requieren confirmación. Todo se calcula en tu dispositivo.</p></div></section>
  <div class="ci"><button class="cib ${mDone?'done':''}" data-ci="am">${ico(mDone?'check':'sunrise')}<span><b>Check-in matinal</b><small>${mDone?'Hecho':'Sueño y energía'}</small></span></button><button class="cib ${eDone?'done':''} ${hr>=17&&!eDone?'hint':''}" data-ci="pm">${ico(eDone?'check':'moon')}<span><b>Check-in nocturno</b><small>${eDone?'Hecho':'Ánimo, estrés y nota'}</small></span></button></div>
  ${hs.length?`${grp('Hábitos',G)}${grp('A evitar',A)}${grp('Contexto del día',N)}
  ${off.length?`<details class="sec"${off.some(h=>val(day,h)!=null)?' open':''}><summary class="lb">No programados ${lab==='Hoy'?'hoy':'este día'} (${off.length})</summary>${off.map(h=>item(h,1)).join('')}</details>`:''}`
@@ -252,7 +252,7 @@ function ajustes(){const nd=Object.keys(S.log).filter(hasData).length;const r=S.
  <h2 class="lb sec">Tus datos y copias de seguridad</h2><div class="card" style="line-height:1.55"><div class="nm">Tus datos son tuyos</div><div class="sub" style="margin-top:5px">Guarda una copia JSON para recuperar todos tus hábitos y registros, o descarga un CSV para analizar tu historial en Excel. Los datos permanecen en este dispositivo.</div></div>
  <button class="btn" id="ex">Exportar copia de seguridad (JSON)</button><button class="btn" id="csv">Descargar historial para Excel (CSV)</button><button class="btn g" id="imb">Importar copia de seguridad (JSON)</button><input type="file" id="im" accept="application/json,.json" hidden>
  <button class="btn r" id="rm">Borrar todos los datos</button>
- <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.5 · funciona sin conexión</span></div>`;
+ <div class="foot"><img src="icons/logo.svg" width="28" height="28" alt=""><span class="wm sm">IMPULSE</span><span class="sub">v1.6 · funciona sin conexión</span></div>`;
  V.querySelectorAll('[data-th]').forEach(e=>e.onclick=()=>{hap(5);S.settings.theme=e.dataset.th;save();applyTheme();ajustes()});
  V.querySelector('#rem').onclick=()=>{hap();enableReminders(!r.on)};
  const rt=V.querySelector('#rt');if(rt)rt.onchange=()=>{if(!rt.value)return;r.time=rt.value;S.settings.lastRem='';save();checkReminder();toast('Hora guardada')};
