@@ -1,9 +1,9 @@
-const C='impulse-v8';const KEEP=[C,'impulse-state'];
+const C='impulse-v9';const KEEP=[C,'impulse-state'];
 const A=['./','index.html','style.css','app.js','icons.js','catalog.js','manifest.webmanifest','fonts/Inter.ttf','icons/logo.svg','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>!KEEP.includes(x)).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==location.origin||e.request.url.endsWith('/__state'))return;
-e.respondWith(caches.open(C).then(c=>c.match(e.request,{ignoreSearch:true}).then(r=>{const f=fetch(e.request).then(n=>{if(n.ok)c.put(e.request,n.clone());return n}).catch(()=>r);if(r){e.waitUntil(f.catch(()=>{}));return r}return f})))});
+e.respondWith(caches.open(C).then(async c=>{const cached=await c.match(e.request,{ignoreSearch:true});try{const fresh=await fetch(e.request);if(fresh.ok)await c.put(e.request,fresh.clone());return fresh}catch(err){if(cached)return cached;throw err}}))});
 // Recordatorio en segundo plano (solo navegadores con Periodic Background Sync, p. ej. Chrome Android con la app instalada)
 const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 self.addEventListener('periodicsync',e=>{if(e.tag!=='impulse-daily')return;e.waitUntil((async()=>{
