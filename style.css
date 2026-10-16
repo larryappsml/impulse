@@ -85,3 +85,6 @@ main.in{animation:vin .22s ease-out}@keyframes vin{from{opacity:0;transform:tran
 .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .7s ease-out forwards}@keyframes draw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){*,*:after,*:before{animation:none!important;transition:none!important}.draw{stroke-dashoffset:0}}
 .big,.st b,.pt b,.rv b,.g2 b,.ir b,.br b{font-variant-numeric:tabular-nums}
+
+/* v1.4 · check-ins explícitos para hábitos a evitar */
+.avoid-actions{display:flex;gap:5px;flex:none;background:var(--c);padding:3px;border-radius:12px}.avoid-choice{border:0;background:transparent;color:var(--m);border-radius:9px;padding:8px 11px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;min-width:42px}.avoid-choice.good{background:var(--al);color:var(--a)}.avoid-choice.bad{background:var(--n);color:#fff}.zero-btn{border:0;background:transparent;color:var(--a);font:inherit;font-size:12px;font-weight:650;cursor:pointer;margin-top:10px;padding:4px 0}.avoid-choice:focus-visible,.zero-btn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
